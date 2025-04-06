@@ -1,0 +1,38 @@
+[package]
+name = "wechat-bot-core"
+version = "0.1.0"
+edition = "2024"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]] # Bin to run the HelloWorld gRPC server
+name = "wechat-bot-core"
+path = "src/server.rs"
+
+# [[bin]] # Bin to run the HelloWorld gRPC client
+# name = "helloworld-client"
+# path = "src/client.rs"
+
+[dependencies]
+tonic = "0.13.0"
+prost = "0.13.5"
+tokio = { version = "1.18", features = ["macros", "rt-multi-thread"] }
+thiserror = "2.0.12"
+anyhow = { version = "1", features = ["backtrace"] }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_with = { version = "3.0", features = ["json","macros"] }
+
+reqwest = { version = "0.12", features = ["json"] }
+
+chrono = { version = "0.4", features = ["serde"] }
+
+log = "0.4.0"
+env_logger = "0.11.7"
+rand = "0.9.0"
+
+nipper = "0.1.9"
+
+async-trait = "0.1.88"
+[build-dependencies]
+tonic-build = "0.13.0"

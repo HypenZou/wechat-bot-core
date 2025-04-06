@@ -1,0 +1,25 @@
+syntax = "proto3";
+package proxy;
+
+message Message {
+    bool isRoom = 2;
+    bool isMemtioned = 3;
+    string roomId = 4;
+    string content = 5;
+} 
+
+enum RespCode {
+   Ok = 0;
+   Ignore = 1;
+   Coruption = 2;
+}
+
+message MessageResp {
+    RespCode code = 1;
+    string response = 2;
+}
+
+service Proxy{
+    rpc OnMessage (Message) returns (MessageResp);
+}
+
