@@ -49,6 +49,8 @@ pub async fn get_basic_info() -> Result<String> {
     result_list.push(("纳指", ixic.0, ixic.1));
     let hsi = get_basic_index("HSI").await?;
     result_list.push(("恒指", hsi.0, hsi.1));
+    let sha = get_basic_index("SHA").await?;
+    result_list.push(("上证", sha.0, sha.1));
     let gold = get_gold_price_diff().await?;
     result_list.push(("黄金", gold.0, gold.1));
     let btc = get_crypto_diff("BTC-USDT").await?;
@@ -70,11 +72,11 @@ pub async fn get_basic_info() -> Result<String> {
     for (name, cur, diff) in result_list {
         str += &format!("{} {} {:.2}%\n", name, cur, diff);
     }
-    if cnt >= 3 {
+    if cnt >= 4 {
         let mut rng = rand::thread_rng();
         let v = good_prompt_arrary.choose(&mut rng).unwrap();
         str += v;
-    } else if cnt <= 2 {
+    } else if cnt <= 3 {
         let mut rng = rand::thread_rng();
         let v = bad_prompt_arrary.choose(&mut rng).unwrap();
         str += v;
@@ -93,6 +95,9 @@ async fn get_basic_index(ticker: &str) -> Result<(f64, f64)> {
     }
     if ticker == "HSI" {
         inxids = 1015;
+    }
+    if ticker == "SHA" {
+        inxids = 1010;
     }
     let url = format!(
         "https://sapi.k780.com/?app=finance.globalindex&inxids={}&appkey={}&sign={}&format=json",
