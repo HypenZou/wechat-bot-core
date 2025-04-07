@@ -1,6 +1,17 @@
 use serde::Deserialize;
 use std::sync::OnceLock;
 use std::{fs, process};
+use clap::Parser;
+use std::path::PathBuf;
+
+// 定义命令行参数结构
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, value_name = "FILE")]
+    config: PathBuf,
+}
+
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
@@ -26,7 +37,9 @@ static CONFIG: OnceLock<Config> = OnceLock::new();
 /// 获取配置单例（首次调用时初始化）
 pub fn get_config() -> &'static Config {
     CONFIG.get_or_init(|| {
-        let config_str = fs::read_to_string("config.json").unwrap_or_else(|e| {
+        let args = Args::parse();
+        let config_path = args.config;
+        let config_str = fs::read_to_string(&config_path).unwrap_or_else(|e| {
             eprintln!("Failed to read config.json: {e}");
             process::exit(1);
         });
