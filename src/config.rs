@@ -17,6 +17,7 @@ pub struct Config {
     pub nowapi_token: String,
     pub nowapi_appkey: String,
     pub huangli_apikey: String,
+    pub tanshu_apikey: String,
 }
 
 // 全局单例实例

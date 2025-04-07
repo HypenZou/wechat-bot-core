@@ -3,7 +3,7 @@ use chrono::{DateTime, Duration, Utc};
 use log::info;
 use rand::{Rng, seq::IndexedRandom};
 
-use crate::{config::get_config, error::Error, proxy::Message, handler::Handler};
+use crate::{config::get_config, error::Error, handler::Handler, proxy::Message};
 
 static good_prompt_arrary: [&'static str; 4] = [
     "买了。我买回了我卖掉的一切。我拥有的每一枚硬币都回来了。我完全重返了市场，激进的购买、巨大的泵，一切都那么享受。市场起飞了，我入场了。",
@@ -49,6 +49,8 @@ pub async fn get_basic_info() -> Result<String> {
     result_list.push(("纳指", ixic.0, ixic.1));
     let hsi = get_basic_index("HSI").await?;
     result_list.push(("恒指", hsi.0, hsi.1));
+    let gold = get_gold_price_diff().await?;
+    result_list.push(("黄金", gold.0, gold.1));
     let btc = get_crypto_diff("BTC-USDT").await?;
     result_list.push(("BTC", btc.0, btc.1));
     let eth = get_crypto_diff("ETH-USDT").await?;
@@ -170,6 +172,41 @@ async fn get_crypto_diff(ticker: &str) -> Result<(f64, f64)> {
     Ok((now, day_ago))
 }
 
+async fn get_gold_price_diff() -> Result<(f64, f64)> {
+    let url = format!(
+        "https://api.tanshuapi.com/api/gold/v1/gjgold2?key={}",
+        get_config().tanshu_apikey
+    );
+    let res = reqwest::get(&url)
+        .await
+        .map_err(|e| Error::HttpError {
+            status: e.status().unwrap(),
+            url: e.url().unwrap().to_string(),
+            response: e.to_string(),
+        })?
+        .json::<serde_json::Value>()
+        .await
+        .map_err(|e| Error::JsonError(e.to_string()))?
+        .pointer("/data/list/XAU")
+        .ok_or(Error::ResultError("failed to get gold data"))?
+        .clone();
+    let now = res
+        .pointer("/price")
+        .ok_or(Error::ResultError("failed to get gold price"))?
+        .as_str()
+        .unwrap()
+        .parse::<f64>()
+        .unwrap();
+    let day_ago = res
+        .pointer("/lastclosingprice")
+        .ok_or(Error::ResultError("failed to get gold price"))?
+        .as_str()
+        .unwrap()
+        .parse::<f64>()
+        .unwrap();
+    Ok((now, day_ago))
+}
+
 #[tokio::test]
 async fn test_get_basic_index() {
     match get_basic_index("IXIC").await {
@@ -180,6 +217,13 @@ async fn test_get_basic_index() {
 #[tokio::test]
 async fn test_get_crypto_price() {
     match get_crypto_price("ETH-USDT", Utc::now()).await {
+        Ok(v) => println!("{:?}", v),
+        Err(e) => println!("{:?}", e),
+    }
+}
+#[tokio::test]
+async fn test_get_gold_price_diff() {
+    match get_gold_price_diff().await {
         Ok(v) => println!("{:?}", v),
         Err(e) => println!("{:?}", e),
     }
