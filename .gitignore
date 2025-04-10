@@ -2,3 +2,4 @@
 .idea
 config.json
 nohup.out
+/logs

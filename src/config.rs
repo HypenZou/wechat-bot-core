@@ -8,7 +8,7 @@ use std::path::PathBuf;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long, value_name = "FILE")]
+    #[arg(short, long, value_name = "FILE", default_value = "config.json")]
     config: PathBuf,
 }
 

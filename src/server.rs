@@ -1,5 +1,13 @@
-use std::sync::Arc;
+use log4rs::append::rolling_file::RollingFileAppender;
+use log4rs::append::rolling_file::policy::compound::CompoundPolicy;
+use log4rs::append::rolling_file::policy::compound::roll::fixed_window::FixedWindowRoller;
+use log4rs::append::rolling_file::policy::compound::trigger::size::SizeTrigger;
+use std::{fs::File, sync::Arc};
 use tokio::sync::Mutex;
+
+use log4rs::append::file::FileAppender;
+use log4rs::config::{Appender, Config, Root};
+use log4rs::encode::pattern::PatternEncoder;
 
 use crate::proxy::{
     Message, MessageResp,
@@ -12,7 +20,7 @@ use wechat_bot_core::{
 };
 // Import the generated proto-rust file into a module
 
-use log::{error, info};
+use log::{LevelFilter, error, info};
 
 #[derive(Default)]
 pub struct ProxyService {
@@ -100,18 +108,37 @@ impl Proxy for ProxyService {
         }
     }
 }
+
+fn init_logger() {
+    let log_roller = FixedWindowRoller::builder()
+        .build("logs/archive/app_{}.log", 5) // 保留5个历史文件
+        .unwrap();
+    let log_trigger = SizeTrigger::new(1024 * 1024); // 1MB触发滚动
+    let log_policy = CompoundPolicy::new(Box::new(log_trigger), Box::new(log_roller));
+
+    let logfile = RollingFileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new("{d} {l} - {m}{n}")))
+        .build("logs/app.log", Box::new(log_policy))
+        .unwrap();
+    let config = Config::builder()
+        .appender(Appender::builder().build("logfile", Box::new(logfile)))
+        .build(Root::builder().appender("logfile").build(LevelFilter::Info))
+        .unwrap();
+    // 初始化日志系统
+    log4rs::init_config(config).unwrap();
+}
+
 // Runtime to run our server
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse()?;
     let mut proxy = ProxyService::default();
     proxy.register_handlers().await;
-    println!("Starting gRPC Server...");
-    env_logger::init();
-
+    init_logger();
     Server::builder()
         .add_service(ProxyServer::new(proxy))
         .serve(addr)
         .await?;
+    info!("Starting gRPC Server...");
     Ok(())
 }
