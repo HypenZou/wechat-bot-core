@@ -78,7 +78,7 @@ impl Proxy for ProxyService {
                     return Ok(Response::new(resp));
                 }
                 Err(e) => {
-                    error!("failed to excute instruction, err: {:?}", e);
+                    error!("failed to execute instruction, err: {:?}", e);
                     let resp = MessageResp {
                         code: RespCode::Ok.into(),
                         response: String::from("哦豁"),
