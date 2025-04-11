@@ -9,6 +9,9 @@ use crate::error::Error;
 #[async_trait::async_trait]
 pub trait Handler : Send + Sync{
     async fn on_message(&mut self, msg: &str) -> Result<String>;
+    
+    // 添加 help 方法
+    fn help(&self) -> String;
 }
 
 #[derive(Default)]

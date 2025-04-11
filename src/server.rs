@@ -43,6 +43,18 @@ impl ProxyService {
             .register_handler(Arc::new(Mutex::new(Help::new())))
             .await;
     }
+
+    async fn handle_help(&self) -> String {
+        let handlers = self.handlers.lock().await;
+        let mut help_text = String::from("可用指令列表：\n");
+        
+        for handler in handlers.iter() {
+            help_text.push_str(&format!("{}\n", handler.lock().await.help()));
+        }
+        
+        help_text.push_str("其他问题直接@你爹");
+        help_text
+    }
 }
 #[tonic::async_trait]
 impl Proxy for ProxyService {
@@ -63,6 +75,14 @@ impl Proxy for ProxyService {
             return Ok(Response::new(resp));
         }
         let content = msg.content.trim();
+        // help function
+        if content == "/help" {
+            let help_text = self.handle_help().await;
+            return Ok(Response::new(MessageResp {
+                code: RespCode::Ok.into(),
+                response: help_text,
+            }));
+        }
         // Follow the instruction
         if content.starts_with("/") {
             let hs = self.handlers.lock().await;

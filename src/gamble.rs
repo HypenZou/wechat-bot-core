@@ -69,6 +69,10 @@ impl Handler for Gamble {
 
         Ok(res)
     }
+
+    fn help(&self) -> String {
+        "戒赌 - 赌狗biss".to_string()
+    }
 }
 
 #[tokio::test]
