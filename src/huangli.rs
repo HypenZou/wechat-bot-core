@@ -54,6 +54,10 @@ impl Handler for HuangLi {
 
         Ok(format!("宜：{}\n忌: {}", yi, ji))
     }
+
+    fn help(&self) -> String {
+        "算命 - 迷信biss".to_string()
+    }
 }
 
 #[tokio::test]

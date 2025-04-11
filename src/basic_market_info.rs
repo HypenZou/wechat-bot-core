@@ -41,6 +41,10 @@ impl Handler for BasicMakertInfo {
         }
         get_basic_info().await
     }
+    
+    fn help(&self) -> String {
+        "/牛回 或 /牛死 - 炒股biss".to_string()
+    }
 }
 
 pub async fn get_basic_info() -> Result<String> {
