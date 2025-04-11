@@ -17,6 +17,7 @@ use tonic::{Request, Response, Status, transport::Server};
 use wechat_bot_core::{
     basic_market_info::BasicMakertInfo, config::get_config, gamble::Gamble, gpt::GPTProxy,
     handler::HandlerMgr, huangli::HuangLi, proxy::RespCode, *,
+    help::Help,
 };
 // Import the generated proto-rust file into a module
 
@@ -37,6 +38,9 @@ impl ProxyService {
             .await;
         handlers
             .register_handler(Arc::new(Mutex::new(HuangLi::new())))
+            .await;
+        handlers
+            .register_handler(Arc::new(Mutex::new(Help::new())))
             .await;
     }
 }
@@ -59,6 +63,7 @@ impl Proxy for ProxyService {
             return Ok(Response::new(resp));
         }
         let content = msg.content.trim();
+        // Follow the instruction
         if content.starts_with("/") {
             let hs = self.handlers.lock().await;
             match hs
@@ -82,6 +87,7 @@ impl Proxy for ProxyService {
                 }
             }
         }
+        // Respond to the message
         let mut gpt_proxy = GPTProxy::new(
             get_config().model.clone(),
             get_config().user_id.clone(),
